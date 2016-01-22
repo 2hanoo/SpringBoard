@@ -22,7 +22,7 @@ public class MemberController {
 	@Resource(name="memberService")
 	private MemberService memberService;
 	
-	@ModelAttribute
+	@ModelAttribute("member")
 	public MemberVO initMemberVO(){
 		return new MemberVO();
 	}
@@ -37,14 +37,12 @@ public class MemberController {
 	
 	@RequestMapping("/member/insertMember.do")
 	public String insertMember(@ModelAttribute("member") @Valid MemberVO member, BindingResult result) throws Exception {
-
 		if(result.hasErrors()){
 			if(log.isDebugEnabled()){
 				log.debug("필수입력 안했어요~");
 			}
 			return "/member/memberJoin";
 		}
-		
 		if(log.isDebugEnabled()){
 			log.debug("가입 입력 내용 : "+member.toString());
 		}

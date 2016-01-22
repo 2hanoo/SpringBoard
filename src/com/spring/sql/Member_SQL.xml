@@ -3,6 +3,6 @@
 
 <mapper namespace="member">
 	<insert id="insertMember" parameterType="hashmap">
-		INSERT INTO SMEMBER (MEMID, MEMNAME, MEMPASS) VALUES (#{MEMID}, #{MEMNAME}, #{MEMPASS})
+		INSERT INTO SMEMBER (MEMID, MEMNAME, MEMPASS) VALUES (#{memid}, #{memname}, #{mempass})
 	</insert>
 </mapper>

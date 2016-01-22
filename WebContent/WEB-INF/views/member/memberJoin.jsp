@@ -23,26 +23,26 @@
 				<tr>
 					<th class="label">아이디</th>
 					<td class="inp">
-					<form:input path="MEMID" onchange="this.value=chksps(this.value)" /><br> 
-					<form:errors cssClass="colorRed" path="MEMID" /></td>
+					<form:input path="memid" onchange="this.value=chksps(this.value)" /><br> 
+					<form:errors cssClass="colorRed" path="memid" /></td>
 				</tr>
 				<tr>
 					<th class="label">이름</th>
 					<td class="inp">
-					<form:input path="MEMNAME" onchange="this.value=chksps(this.value)" /><br> 
-					<form:errors cssClass="colorRed" path="MEMNAME" />></td>
+					<form:input path="memname" onchange="this.value=chksps(this.value)" /><br> 
+					<form:errors cssClass="colorRed" path="memname" /></td>
 				</tr>
 				<tr>
 					<th class="label">비밀번호</th>
-					<td class="inp"><input type="password" name="mempw"
+					<td class="inp"><input type="password" name="mempass"
 						onchange="this.value=chksps(this.value)"><br> <form:errors
-							cssClass="colorRed" path="mempw" /></td>
+							cssClass="colorRed" path="mempass" /></td>
 				</tr>
 				<tr>
 					<td colspan="2" align="center">
 					<input type="submit" value="가입하기"> 
 					<input type="button" value="목록으로"
-						onclick="javascript:location.href='../board/openListBoard.do"></td>
+						onclick="javascript:location.href='../board/openBoardList.do'"></td>
 				</tr>
 			</table>
 		</form:form>
