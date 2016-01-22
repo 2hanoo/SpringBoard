@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="board">
+	<sql id="search">
+		<where>
+			<if test="keyField!=null and keyWord!=''">
+				<if test="keyField=='name'"> name like '%${keyWord}%' </if>
+				<if test="keyField=='title'"> title like '%${keyWord}%' </if>
+				<if test="keyField=='content'"> content like '%${keyWord}%' </if>
+				<if test="keyField=='all'"> content like '%${keyWord}%' or name like '%${keyWord}%'
+					or title like '%${keyWord}%'</if>
+			</if>
+		</where>
+	</sql>
+	<!-- - 첫번째로, <select> 태그를 이용하여 이 쿼리가 select문이라는것을 명시하였다. - id="selectBoardList" 
+		부분은 이 쿼리의 id는 selectBoardList 라고 정의하였다. - parameterType="hashmap" 부분은 이 쿼리가 
+		실행될때 필요한 변수는 HashMap 형태를 의미한다. - resultType="hashmap" 부분은 이 쿼리의 결과값은 HashMap에 
+		담겨서 반환된다는 것을 의미한다. -->
+	<select id="selectBoardList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+		SEQ,NAME,TITLE,CONTENT,PASS,HIT,REGDATE,GROUPS
+		FROM (SELECT A.*,
+		ROWNUM RNUM
+		FROM (SELECT * FROM SBOARD ORDER BY GROUPS DESC, SEQ ASC) A
+		<include refid="search" />
+		)
+		<![CDATA[
+		 WHERE RNUM >= #{start} AND RNUM <= #{end}
+		]]>
+	</select>
+
+	<!-- 페이징 처리 -->
+	<select id="getCount" resultType="int" parameterType="map">
+		select count(*) from SBOARD
+		<include refid="search" />
+	</select>
+
+
+	<!-- 게시글 쓰기 -->
+	<insert id="insertBoard" parameterType="hashmap"
+		useGeneratedKeys="true" keyProperty="SEQ">
+		<!-- useGeneratedKeys : mybatis에서 제공하는 기능으로 DB에 입력(insert, update)시 -->
+		<!-- 데이터베이스에서 자동적으로 증가되는 키를 받는 JDBC의 getGeneratedKeys()메서드를 사용하도록 하는 것 -->
+		<!-- keyProperty : getGeneratedKey()메서드나 insert 구문의 selectKey에 의해 선택된 키를 
+			셋팅하는 속성 -->
+		<selectKey keyProperty="SEQ" resultType="string" order="BEFORE">
+			SELECT SBOARD_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+    <![CDATA[
+        INSERT INTO SBOARD
+        (
+            SEQ,NAME,TITLE,CONTENT,PASS,HIT,REGDATE,GROUPS
+        )
+        VALUES
+        (
+            #{SEQ}, #{NAME}, #{TITLE}, #{CONTENT}, #{PASS}, 0, SYSDATE, #{SEQ}
+        )
+    ]]>
+	</insert>
+	
+	<!-- 답글 쓰기 -->
+	<insert id="insertReply" parameterType="hashmap"
+		useGeneratedKeys="true" keyProperty="SEQ">
+		<!-- useGeneratedKeys : mybatis에서 제공하는 기능으로 DB에 입력(insert, update)시 -->
+		<!-- 데이터베이스에서 자동적으로 증가되는 키를 받는 JDBC의 getGeneratedKeys()메서드를 사용하도록 하는 것 -->
+		<!-- keyProperty : getGeneratedKey()메서드나 insert 구문의 selectKey에 의해 선택된 키를 
+			셋팅하는 속성 -->
+		<selectKey keyProperty="SEQ" resultType="string" order="BEFORE">
+			SELECT SBOARD_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+    <![CDATA[
+        INSERT INTO SBOARD
+        (
+            SEQ,NAME,TITLE,CONTENT,PASS,HIT,REGDATE,GROUPS
+        )
+        VALUES
+        (
+            #{SEQ}, #{NAME}, #{TITLE}, #{CONTENT}, #{PASS}, 0, SYSDATE, #{GROUPS}
+        )
+    ]]>
+	</insert>
+	
+	<!-- 파일 리스트 -->
+	<select id="selectFileList" parameterType="hashmap" resultType="hashmap">
+    <![CDATA[
+        SELECT
+            FILE_SEQ,
+            ORIGINAL_FILE_NAME,
+            ROUND(FILE_SIZE/1024,1) AS FILE_SIZE
+        FROM
+            SFILE
+        WHERE
+            BOARD_SEQ = #{SEQ}
+            AND DEL_GB = 'N'
+    ]]>
+	</select>
+	<!-- 파일 추가 -->
+	<insert id="insertFile" parameterType="hashmap">
+    <![CDATA[
+        INSERT INTO SFILE
+        (
+            FILE_SEQ, BOARD_SEQ, ORIGINAL_FILE_NAME,
+            STORED_FILE_NAME, FILE_SIZE, NAME
+        )
+        VALUES
+        (
+            SFILE_SEQ.NEXTVAL, #{BOARD_SEQ},
+            #{ORIGINAL_FILE_NAME}, #{STORED_FILE_NAME},
+            #{FILE_SIZE}, #{NAME}
+        )
+    ]]>
+	</insert>
+	<!-- 파일 삭제 -->
+	<update id="deleteFileList" parameterType="hashmap">
+    <![CDATA[
+        UPDATE SFILE SET
+            DEL_GB = 'Y'
+        WHERE
+            BOARD_SEQ = #{SEQ}  
+    ]]>
+	</update>
+	<!-- 파일 수정 -->
+	<update id="updateFile" parameterType="hashmap">
+    <![CDATA[
+        UPDATE SFILE SET
+            DEL_GB = 'N'
+        WHERE
+            FILE_SEQ = #{FILE_SEQ}   
+    ]]>
+	</update>
+	<!-- 조회수 증가 -->
+	<update id="updateHitCnt" parameterType="hashmap">
+    <![CDATA[
+        UPDATE SBOARD 
+        SET
+            HIT = NVL(HIT, 0) + 1
+        WHERE
+            SEQ = #{SEQ}    
+    ]]>
+	</update>
+	<!-- 글 상세보기 -->
+	<select id="selectBoardDetail" parameterType="hashmap"
+		resultType="hashmap">
+    <![CDATA[
+        SELECT
+            SEQ,NAME,TITLE,CONTENT,PASS,HIT,REGDATE,GROUPS
+        FROM
+           SBOARD
+        WHERE
+            SEQ = #{SEQ}        
+    ]]>
+	</select>
+	<!-- 패스워드 체크 -->
+	<select id="passCheck" parameterType="hashmap" resultType="int">
+		SELECT NVL((
+				SELECT 1 FROM SBOARD
+				WHERE SEQ = #{SEQ}
+				AND PASS = #{PASS}
+				),0) as state
+				FROM dual
+	</select>
+
+	<!-- 글 수정 -->
+	<update id="updateBoard" parameterType="hashmap">
+    <![CDATA[
+        UPDATE SBOARD 
+        SET
+            TITLE = #{TITLE},
+            NAME = #{NAME},
+            PASS = #{PASS},
+            CONTENT = #{CONTENT}
+        WHERE
+            SEQ = #{SEQ}    
+    ]]>
+	</update>
+	<!-- 글 삭제 -->
+	<update id="deleteBoard" parameterType="hashmap">
+    <![CDATA[
+        DELETE FROM SBOARD
+        WHERE
+            SEQ = #{SEQ}
+    ]]>
+	</update>
+</mapper>

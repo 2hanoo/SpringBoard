@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- name 은 sqlSession 에서 사용할 이름 . ref 는 context-datasource에서의 bean -->
+		<property name="mapperLocations" value="classpath:/com/spring/sql/*_SQL.xml" />
+		<!-- 이 경로의 sql문을 받아옴 -->
+	</bean>
+
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<!-- sqlSession을 구현하고 코드에서 sqlSession을 대체하는 역할을 함 -->
+		<constructor-arg index="0" ref="sqlSession" />
+	</bean>
+</beans>
